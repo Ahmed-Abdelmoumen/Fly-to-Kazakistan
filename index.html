@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vol animé - Tunis → Frankfurt → Almaty</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            position: relative;
+            width: 95vw;
+            height: 90vh;
+            max-width: 1200px;
+            background: #f0f8ff;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .world-map {
+            width: 100%;
+            height: 100%;
+            background-image:url('./map.png');
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            padding-top: 0px;
+            margin-top: 0px;
+        }
+
+        .city {
+            position: absolute;
+            background: #ff4757;
+            border: 1px solid #111010;
+            border-radius: 50%;
+            width: 8px;
+            height: 8px;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+
+        .city.active {
+            animation: pulse 2s infinite;
+        }
+
+        .city-label {
+            position: absolute;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            white-space: nowrap;
+            transform: translate(-30%, -120%);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        #tunis {
+            left: 49%;
+            top: 45%;
+        }
+
+        #frankfurt {
+            left: 48%;
+            top: 32%;
+        }
+
+        #almaty {
+            left: 66%;
+            top: 38%;
+        }
+        
+        
+        #FTE{
+          color:rgb(255, 0, 166);
+        }
+
+        .FTE{
+          color:lime;
+        }
+        
+
+        .plane {
+            position: absolute;
+            font-size: 28px;
+            transform: translate(-50%, -50%);
+            z-index: 15;
+            transition: transform 0.3s ease;
+        }
+
+        .flight-path {
+            position: absolute;
+            stroke: #3742fa;
+            stroke-width: 3;
+            stroke-dasharray: 10, 5;
+            fill: none;
+            opacity: 0.8;
+            z-index: 5;
+        }
+
+        .flight-path.active {
+            animation: dash 3s linear infinite;
+        }
+
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -15;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.3);
+                box-shadow: 0 6px 12px rgba(255,71,87,0.6);
+            }
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 20;
+        }
+
+        button {
+            background: linear-gradient(45deg, #3742fa, #5352ed);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(55,66,250,0.4);
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(55,66,250,0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .info-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 16px;
+            min-width: 200px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .progress-bar {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            height: 8px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #3742fa, #5352ed);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    
+    <audio id="monAudio">
+        <source src="./plane 01.mp3" type="audio/mpeg">
+    </audio>
+    
+    <div class="container">
+        
+        <div class="world-map">
+            <svg width="100%" height="100%" style="position: absolute; top: 0; left: 0;">
+                <path id="path1" class="flight-path" d="M 45% 58% Q 46% 48% 48% 42%"></path>
+                <path id="path2" class="flight-path" d="M 48% 42% Q 58% 38% 72% 38%"></path>
+            </svg>
+
+            <div id="tunis" class="city">
+                <div class="city-label">Tunis 🇹🇳</div>
+            </div>
+            <div id="frankfurt" class="city">
+                <div class="city-label">Frankfurt 🇩🇪</div>
+            </div>
+            <div id="almaty" class="city">
+                <div class="city-label">Almaty 🇰🇿</div>
+            </div>
+
+            <div class="plane" id="plane">✈️</div>
+        </div>
+
+        <div class="info-panel" id="infoPanel">
+            <div class="FTE">
+              <span id="FTE">Championnat du monde des echecs</span>
+            </div>
+            <div class="FTE"><strong>Féderation Tunisienne des Echecs</strong> <span id="FTE"></span></div>
+            <div><strong>Vol:</strong> <span id="flightInfo">En attente...</span></div>
+            <div><strong>Durée:</strong> <span id="duration">-</span></div>
+            <div><strong>Distance:</strong> <span id="distance">-</span></div>
+            <div><strong>Date:</strong> <span id="date">départ 18/09 Retour 01/10</span></div>
+
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="controls">
+            <button onclick="startFlight() ">🛫 Démarrer le vol</button>
+            <button onclick="resetFlight()">🔄 Recommencer</button>
+        </div>
+    </div>
+
+    <script>
+        
+  
+        let currentSegment = 0;
+        let isFlying = false;
+
+        const audio = document.getElementById("monAudio");
+  let compteur = 0; // Compte le nombre de lectures
+
+  // Fonction pour jouer l'audio
+  function jouer() {
+    compteur++;
+    audio.currentTime = 0; // Repartir du début
+    audio.play();
+  }
+
+  // Quand le son se termine
+  audio.addEventListener("ended", () => {
+    if (compteur < 2) { // Si on l'a joué moins de 2 fois
+      jouer();
+    }
+  });
+
+  // Lancer la première lecture dès le chargement
+  window.addEventListener("load", () => {
+    jouer();
+  });
+                
+
+
+        const flights = [
+            {
+                from: 'Tunis',
+                to: 'Frankfurt',
+                duration: '2h 30m',
+                distance: '1,450 km',
+                path: 'path1',
+                startPos: { left: '49%', top: '45%' },
+                endPos: { left: '48%', top: '32%' }
+            },
+            {
+                from: 'Frankfurt',
+                to: 'Almaty',
+                duration: '6h 15m',
+                distance: '4,200 km',
+                path: 'path2',
+                startPos: { left: '48%', top: '32%' },
+                endPos: { left: '66%', top: '38%' }
+            }
+        ];
+
+         
+   
+
+        function updateInfo(flightIndex) {
+            const flight = flights[flightIndex];
+            document.getElementById('flightInfo').textContent = `${flight.from} → ${flight.to}`;
+            document.getElementById('duration').textContent = flight.duration;
+            document.getElementById('distance').textContent = flight.distance;
+        }
+
+        function animatePlane(flightIndex, callback) {
+            const flight = flights[flightIndex];
+            const plane = document.getElementById('plane');
+            const path = document.getElementById(flight.path);
+            const progressFill = document.getElementById('progressFill');
+            
+            // Activer le chemin de vol
+            path.classList.add('active');
+            
+            // Activer la ville de départ
+            const cities = document.querySelectorAll('.city');
+            cities.forEach(city => city.classList.remove('active'));
+            
+            updateInfo(flightIndex);
+            
+            let progress = 0;
+            const duration = 4000; // 4 secondes pour l'animation
+            const startTime = Date.now();
+            
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                progress = Math.min(elapsed / duration, 1);
+                
+                // Calculer la position interpolée
+                const startLeft = parseFloat(flight.startPos.left);
+                const startTop = parseFloat(flight.startPos.top);
+                const endLeft = parseFloat(flight.endPos.left);
+                const endTop = parseFloat(flight.endPos.top);
+                
+                const currentLeft = startLeft + (endLeft - startLeft) * progress;
+                const currentTop = startTop + (endTop - startTop) * progress;
+                
+                plane.style.left = currentLeft + '%';
+                plane.style.top = currentTop + '%';
+                
+                // Rotation de l'avion selon la direction
+                const angle = Math.atan2(endTop - startTop, endLeft - startLeft) * 180 / Math.PI;
+                plane.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+                
+                // Mise à jour de la barre de progression
+                const totalProgress = (flightIndex + progress) / flights.length * 100;
+                progressFill.style.width = totalProgress + '%';
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    path.classList.remove('active');
+                    // Activer la ville d'arrivée
+                    if (flightIndex === 0) {
+                        document.getElementById('frankfurt').classList.add('active');
+                    } else {
+                        document.getElementById('almaty').classList.add('active');
+                    }
+                    
+                    setTimeout(callback, 1000);
+                }
+            }
+            
+            animate();
+        }
+
+        function startFlight() {
+            
+            if (isFlying) return;
+            
+            isFlying = true;
+            currentSegment = 0;
+            
+            // Réinitialiser les classes actives
+            document.querySelectorAll('.city').forEach(city => city.classList.remove('active'));
+            document.getElementById('tunis').classList.add('active');
+            
+            function flyNextSegment() {
+                if (currentSegment < flights.length) {
+                    animatePlane(currentSegment, () => {
+                        currentSegment++;
+                        if (currentSegment < flights.length) {
+                            setTimeout(flyNextSegment, 2000);
+                        } else {
+                            // Vol terminé
+                            document.getElementById('flightInfo').textContent = 'Vol terminé!';
+                            isFlying = false;
+                        }
+                    });
+                }
+            }
+            
+            flyNextSegment();
+        }
+
+        function resetFlight() {
+            isFlying = false;
+            currentSegment = 0;
+            
+            // Réinitialiser l'avion à Tunis
+            const plane = document.getElementById('plane');
+            plane.style.left = '45%';
+            plane.style.top = '58%';
+            plane.style.transform = 'translate(-50%, -50%) rotate(0deg)';
+            
+            // Réinitialiser les villes
+            document.querySelectorAll('.city').forEach(city => city.classList.remove('active'));
+            
+            // Réinitialiser les chemins
+            document.querySelectorAll('.flight-path').forEach(path => path.classList.remove('active'));
+            
+            // Réinitialiser la barre de progression
+            document.getElementById('progressFill').style.width = '0%';
+            
+            // Réinitialiser les informations
+            document.getElementById('flightInfo').textContent = 'En attente...';
+            document.getElementById('duration').textContent = '-';
+            document.getElementById('distance').textContent = '-';
+        }
+
+        // Initialisation
+        resetFlight();
+    </script>
+</body>
+</html>
